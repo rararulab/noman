@@ -30,8 +30,8 @@ export function parseReviewReport(output: string): ReviewReport {
     newGoals: [],
   };
 
-  // Extract the structured block from claude's output
-  // Claude may wrap it in markdown code fences or just output it raw
+  // Extract the structured block from agent output
+  // Different CLIs may wrap content in code fences or return raw text
   const cleaned = output.replace(/```[\s\S]*?```/g, (match) => {
     return match.replace(/```\w*\n?/, "").replace(/\n?```/, "");
   });

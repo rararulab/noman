@@ -9,6 +9,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/index.ts",
+    "prompt": "tsx src/index.ts prompt",
     "drive": "tsx src/index.ts drive",
     "init": "tsx src/index.ts init"
   },

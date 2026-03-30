@@ -5,12 +5,12 @@
 ### P0 — Must work
 - [ ] **Parser works** — `parseGoalMarkdown` correctly extracts tiers, items, checked state from any well-formed goal markdown — **verification**: `npx tsx src/__tests__/parser.test.ts`
 - [ ] **State round-trips** — `loadState` → `saveState` → `loadState` returns identical data — **verification**: `npx tsx src/__tests__/state.test.ts`
-- [ ] **Claude CLI spawn** — `runClaude` successfully spawns `claude -p` and captures stdout/stderr — **verification**: `npx tsx src/__tests__/claude.test.ts`
+- [ ] **Agent CLI spawn** — `runAgent` can spawn configured agent CLI (claude/codex) and capture stdout/stderr — **verification**: `NOMAN_AGENT=codex npx tsx src/__tests__/agent.test.ts`
 - [ ] **Drive loop runs** — `noman drive` executes at least one REVIEW cycle on this very repo without crashing — **verification**: `npx tsx src/index.ts drive --goal-dir goal`
 - [ ] **Init scaffolds** — `noman init --dir /tmp/test-noman` creates valid goal/ structure — **verification**: `npx tsx src/index.ts init --dir /tmp/test-noman && cat /tmp/test-noman/goal/root.md`
 
 ### P1 — Core quality
-- [ ] **Report parsing robust** — handles malformed claude output gracefully (empty, no structure, partial) without throwing
+- [ ] **Report parsing robust** — handles malformed agent output gracefully (empty, no structure, partial) without throwing
 - [ ] **Prompt templates are language-agnostic** — no Rust/cargo/clippy references in prompts/; all project-specific commands live in goal files only
 - [ ] **CEO prompt embodies 归一性** — the ceo.md prompt clearly encodes first-principles thinking, unity principle, deletion principle, and the HR dispatch pattern
 - [ ] **Zero hardcoded paths** — all paths derived from --goal-dir or cwd, no absolute paths in source

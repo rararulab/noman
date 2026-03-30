@@ -1,4 +1,4 @@
-# CLAUDE.md — noman
+# AGENTS.md — noman
 
 ## Communication
 - 用中文与用户交流
@@ -17,8 +17,8 @@ When the user says **`drive`**, enter the goal-driven iteration loop. Read and f
 src/
 ├── index.ts    # CLI entry (noman drive / noman init)
 ├── loop.ts     # State machine: REVIEW → IMPL → FIX → RE-REVIEW
-├── agent.ts    # Unified agent CLI adapter (claude/codex)
-├── claude.ts   # Claude-compat wrapper on top of agent adapter
+├── agent.ts   # Unified agent CLI adapter (claude/codex)
+├── claude.ts  # Claude-compat wrapper on top of agent adapter
 ├── parser.ts   # Parse goal markdown → structured data
 ├── state.ts    # Read/write goal/.state.json
 ├── prompt.ts   # Assemble prompts from templates

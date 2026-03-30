@@ -152,5 +152,5 @@ export async function setup(targetDir: string): Promise<void> {
   console.log("\n---");
   log("setup complete.");
   log("review goal/root.md — the CEO wrote your project goal.");
-  log("when ready: noman drive");
+  log("next: 用 noman prompt 生成入口提示词，粘贴到当前 agent 会话直接开始 drive。");
 }

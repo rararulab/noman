@@ -1,0 +1,27 @@
+name: PR Policy
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+
+jobs:
+  policy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR body contains linked issue and verification
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const body = pr.body || "";
+
+            const hasIssueLink = /Closes\s+#\d+/i.test(body);
+            const hasVerification = /##\s*Verification/i.test(body);
+
+            const missing = [];
+            if (!hasIssueLink) missing.push("PR body must include: Closes #<issue-id>");
+            if (!hasVerification) missing.push("PR body must include section: ## Verification");
+
+            if (missing.length > 0) {
+              core.setFailed(missing.join("\n"));
+            }

@@ -2,7 +2,7 @@
 
 Self-driven AI agent loop. No man needed.
 
-A TS CLI that orchestrates Claude Code to iteratively drive any project toward a defined goal. The core is a CEO agent — your will proxy with first-principles methodology (归一性) — that autonomously dispatches specialized agents to build your project.
+An agent-native workflow with a small TS toolkit. CEO runs in the user's current agent session, then dispatches subagents via agent CLI (Claude/Codex) to iteratively drive any project toward a defined goal.
 
 ## How it works
 
@@ -12,21 +12,30 @@ You → CEO (your will proxy) → dispatches agents → project gets built
          └──── REVIEW → IMPL → FIX → RE-REVIEW ────────┘
 ```
 
-1. **Setup**: noman interviews you to understand what you want to build
-2. **Goal**: CEO writes a prioritized checklist (P0 → P1 → P2) with verification methods
-3. **Drive**: TS state machine loops through review/implement/fix cycles, calling `claude` CLI each step
-4. **Done**: All checklist items pass, project is complete
+1. **One Prompt**: 复制入口提示词并粘贴到你当前 agent 会话
+2. **Bootstrap**: agent 创建 `goal/root.md` + `goal/.state.json`
+3. **Drive in-session**: CEO 在当前会话持续推进；你可随时插话
+4. **Done**: checklist 按 P0 → P1 → P2 逐层完成
 
 ## Usage
 
 ```bash
-# Interview → generate project goal
+# 0) (可选) 直接复制 prompts/entry.md 作为入口
+
+# 1) 或者生成 one-copy quickstart prompt（会带上你的项目绝对路径）
+npx tsx src/index.ts prompt --dir /path/to/your/project
+# (or: npm run prompt -- --dir /path/to/your/project)
+
+# 2) 粘贴给你的 agent（Claude/Codex/其他兼容 CLI）
+#    CEO 会直接在当前会话运行（不是 TS CLI loop）。
+
+# Optional: legacy interview flow
 npx tsx src/index.ts setup --dir /path/to/your/project
 
-# Run the autonomous drive loop
-npx tsx src/index.ts drive --goal-dir /path/to/your/project/goal
+# Optional legacy/debug: print CEO packet only
+npx tsx src/index.ts drive --goal-dir goal --agent codex
 
-# Or scaffold a blank goal for manual editing
+# Optional: scaffold a blank goal for manual editing
 npx tsx src/index.ts init --dir /path/to/your/project
 ```
 
@@ -39,6 +48,24 @@ The CEO agent (`prompts/ceo.md`) operates on three principles:
 - **Taste** — simplest thing that delivers the best experience.
 
 It "hires" specialized agents as needed: reviewer, designer, tech lead, implementer. Like HR, it crafts each agent's prompt to match the task.
+
+## Agent-native runtime (核心)
+
+- **CEO 运行位置**：用户当前 agent 会话
+- **TS CLI 角色**：初始化/生成提示词/调试，不是 runtime loop 入口
+- **子 agent 派发**：继续使用 agent-cli（`claude`/`codex`，可通过 `--agent` 或 `NOMAN_AGENT` 指定）
+
+即：避免“TS 驱动 CEO loop”，但保留多 agent 调度能力。
+
+## Contribution Flow
+
+noman 的仓库改动遵循：**Issue → Workflow → PR**。
+
+- 先开 Issue，明确目标与验收标准
+- PR 必须关联 Issue（`Closes #...`）
+- PR 必须提供验证证据，并通过 workflow
+
+详见：`CONTRIBUTING.md`
 
 ## Self-bootstrap
 
