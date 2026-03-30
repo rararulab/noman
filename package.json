@@ -10,8 +10,12 @@
     "build": "tsc",
     "dev": "tsx src/index.ts",
     "prompt": "tsx src/index.ts prompt",
+    "start": "tsx src/index.ts start",
     "drive": "tsx src/index.ts drive",
-    "init": "tsx src/index.ts init"
+    "init": "tsx src/index.ts init",
+    "handoff": "tsx src/index.ts handoff",
+    "checkpoint": "tsx src/index.ts checkpoint",
+    "boss": "tsx src/index.ts boss"
   },
   "keywords": ["ai", "agent", "self-driven", "autonomous"],
   "author": "",

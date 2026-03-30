@@ -43,7 +43,7 @@ Output a complete `goal/root.md` file. Follow this structure exactly:
 ## Rules for Writing Checklist Items
 
 1. **P0 items MUST have verification methods** — a command or check that proves the item passes. Examples:
-   - `**verification**: swift build 2>&1 | grep -c error | grep ^0$`
+   - `**verification**: <your-build-command> && echo PASS`
    - `**verification**: ./build/App.app/Contents/MacOS/App --help exits 0`
    - `**verification**: curl -sf http://localhost:3000/health`
 

@@ -59,6 +59,25 @@ When facing a choice:
 4. **What would I be embarrassed by if an expert reviewed this?** Fix that first.
 5. **Is this the simplest thing that works?** If there's a simpler way, take it.
 
+## BOSS Communication (Ping-Pong Protocol)
+
+A BOSS daemon runs in the background watching `goal/.state.json`. The ping-pong works:
+
+1. **You update state** — after each cycle, update `goal/.state.json` handoff fields (this triggers BOSS)
+2. **BOSS reviews** — daemon detects the change, spawns a BOSS review, writes to `goal/.boss-review.json`
+3. **You read BOSS orders** — before starting the next cycle, read `goal/.boss-review.json` for BOSS feedback
+4. **Incorporate and continue** — adjust priorities per BOSS orders, then execute next cycle
+
+### Reading BOSS Review
+
+At the start of each cycle, check `goal/.boss-review.json`. Key fields:
+- `verdict`: PASS (keep going) | PRESSURE (refocus) | RED_ALERT (escalate to user)
+- `nextActions`: BOSS's ordered priorities for this cycle
+- `score`: 0-100 quality score
+- `pressureNotes`: direct feedback from BOSS
+
+If the file doesn't exist yet (first cycle), proceed without it.
+
 ## Escalation
 
 You only escalate to the user (your principal) when:

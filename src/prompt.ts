@@ -18,6 +18,17 @@ function formatChecklist(items: ChecklistItem[]): string {
 export async function buildCeoPrompt(goal: GoalFile, state: DriveState): Promise<string> {
   const ceoTemplate = await loadTemplate("ceo");
   const agentTemplate = await loadTemplate("agent");
+  const bossTemplate = await loadTemplate("boss");
+
+  const handoff = state.handoff
+    ? `Updated At: ${state.handoff.updatedAt}\nObjective: ${state.handoff.objective}\nCompleted: ${JSON.stringify(
+        state.handoff.completed
+      )}\nIn Progress: ${JSON.stringify(state.handoff.inProgress)}\nBlocked: ${JSON.stringify(
+        state.handoff.blocked
+      )}\nNext Actions: ${JSON.stringify(state.handoff.nextActions)}\nDecisions: ${JSON.stringify(
+        state.handoff.decisions
+      )}`
+    : "(none)";
 
   return `${ceoTemplate}
 
@@ -26,6 +37,12 @@ export async function buildCeoPrompt(goal: GoalFile, state: DriveState): Promise
 # Goal System Reference
 
 ${agentTemplate}
+
+---
+
+# Boss Review Protocol
+
+${bossTemplate}
 
 ---
 
@@ -40,6 +57,9 @@ ${goal.raw}
 Current Tier: ${state.currentTier}
 Cycle: ${state.cycle}
 Items: ${JSON.stringify(state.items, null, 2)}
+
+Handoff Snapshot:
+${handoff}
 
 ---
 

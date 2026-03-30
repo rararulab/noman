@@ -16,12 +16,23 @@ export interface CycleEntry {
   tier: string;
 }
 
+export interface HandoffSnapshot {
+  updatedAt: string;
+  objective: string;
+  completed: string[];
+  inProgress: string[];
+  blocked: string[];
+  nextActions: string[];
+  decisions: string[];
+}
+
 export interface DriveState {
   currentTier: string;
   cycle: number;
   items: Record<string, ItemState>;
   history: CycleEntry[];
   subGoalsCreated: number;
+  handoff?: HandoffSnapshot;
 }
 
 const STATE_FILE = ".state.json";
@@ -33,6 +44,15 @@ function defaultState(): DriveState {
     items: {},
     history: [],
     subGoalsCreated: 0,
+    handoff: {
+      updatedAt: new Date(0).toISOString(),
+      objective: "",
+      completed: [],
+      inProgress: [],
+      blocked: [],
+      nextActions: [],
+      decisions: [],
+    },
   };
 }
 
@@ -41,7 +61,24 @@ export async function loadState(goalDir: string): Promise<DriveState> {
   if (!existsSync(path)) return defaultState();
 
   const content = await readFile(path, "utf-8");
-  return JSON.parse(content) as DriveState;
+  const parsed = JSON.parse(content) as DriveState;
+
+  const base = defaultState();
+  const parsedHandoff: Partial<HandoffSnapshot> = parsed.handoff ?? {};
+
+  return {
+    ...base,
+    ...parsed,
+    handoff: {
+      updatedAt: parsedHandoff.updatedAt ?? base.handoff!.updatedAt,
+      objective: parsedHandoff.objective ?? base.handoff!.objective,
+      completed: parsedHandoff.completed ?? base.handoff!.completed,
+      inProgress: parsedHandoff.inProgress ?? base.handoff!.inProgress,
+      blocked: parsedHandoff.blocked ?? base.handoff!.blocked,
+      nextActions: parsedHandoff.nextActions ?? base.handoff!.nextActions,
+      decisions: parsedHandoff.decisions ?? base.handoff!.decisions,
+    },
+  };
 }
 
 export async function saveState(goalDir: string, state: DriveState): Promise<void> {

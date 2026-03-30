@@ -6,13 +6,18 @@ import { drive } from "./loop.js";
 import { setup } from "./setup.js";
 import { buildQuickstartPrompt } from "./quickstart.js";
 
+function log(phase: string, msg: string): void {
+  const ts = new Date().toISOString().slice(11, 19);
+  console.log(`[${ts}] [${phase}] ${msg}`);
+}
+
 const USAGE = `
 noman — self-driven AI agent loop
 
 Usage:
   noman prompt [--dir <path>]       Print one-copy agent entry prompt (recommended)
   noman setup [--dir <path>]        Legacy interview flow → generate project goal
-  noman drive [--goal-dir <path>] [--agent <name>] Legacy/debug: print CEO packet only
+  noman drive [--goal-dir <path>] [--agent <name>] Start BOSS daemon (background reviewer)
   noman init  [--dir <path>]        Scaffold blank goal/ (manual editing)
 
 Options:
@@ -51,6 +56,10 @@ async function main(): Promise<void> {
 }
 
 async function runPrompt(args: string[]): Promise<void> {
+  if (args.includes("--help") || args.includes("-h")) {
+    console.log("Usage: noman prompt [--dir <path>] — Print agent entry prompt");
+    return;
+  }
   const dirIdx = args.indexOf("--dir");
   const targetDir = dirIdx >= 0 ? resolve(args[dirIdx + 1]) : process.cwd();
   const prompt = buildQuickstartPrompt(targetDir);
@@ -61,18 +70,28 @@ async function runPrompt(args: string[]): Promise<void> {
 }
 
 async function runSetup(args: string[]): Promise<void> {
+  if (args.includes("--help") || args.includes("-h")) {
+    console.log("Usage: noman setup [--dir <path>] — Interactive interview to generate project goal");
+    return;
+  }
   const dirIdx = args.indexOf("--dir");
   const targetDir = dirIdx >= 0 ? resolve(args[dirIdx + 1]) : process.cwd();
   await setup(targetDir);
 }
 
 async function runInit(args: string[]): Promise<void> {
+  if (args.includes("--help") || args.includes("-h")) {
+    console.log("Usage: noman init [--dir <path>] — Scaffold blank goal/ directory");
+    return;
+  }
   const dirIdx = args.indexOf("--dir");
   const targetDir = dirIdx >= 0 ? resolve(args[dirIdx + 1]) : process.cwd();
   const goalDir = join(targetDir, "goal");
 
   if (existsSync(goalDir)) {
-    console.log(`goal/ already exists at ${goalDir}`);
+    console.error(`goal/ already exists at ${goalDir}`);
+    console.error("to continue iterating: noman drive");
+    console.error("to start fresh: rm -rf goal/ && noman init");
     process.exit(1);
   }
 
@@ -118,11 +137,15 @@ async function runInit(args: string[]): Promise<void> {
     "utf-8"
   );
 
-  console.log(`initialized blank goal/ at ${goalDir}`);
-  console.log("next: edit goal/root.md manually, or use 'noman setup' for guided interview");
+  log("INIT", `initialized blank goal/ at ${goalDir}`);
+  log("INIT", "next: edit goal/root.md manually, or use 'noman setup' for guided interview");
 }
 
 async function runDrive(args: string[]): Promise<void> {
+  if (args.includes("--help") || args.includes("-h")) {
+    console.log("Usage: noman drive [--goal-dir <path>] [--agent <name>] — Start BOSS daemon (background reviewer)");
+    return;
+  }
   const goalDirIdx = args.indexOf("--goal-dir");
   const agentIdx = args.indexOf("--agent");
   const goalDir = goalDirIdx >= 0 ? resolve(args[goalDirIdx + 1]) : join(process.cwd(), "goal");
@@ -141,11 +164,11 @@ async function runDrive(args: string[]): Promise<void> {
     process.exit(1);
   }
 
-  console.log("[legacy] drive 仅输出 CEO packet；推荐直接使用 noman prompt 进入当前 agent 会话驱动。");
   await drive({ goalDir, projectDir, agentPreference });
 }
 
 main().catch((err) => {
+  console.error("unexpected error — run 'noman --help' for usage");
   console.error(err);
   process.exit(1);
 });

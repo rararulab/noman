@@ -5,9 +5,9 @@ import { existsSync } from "node:fs";
 
 const PROMPTS_DIR = join(import.meta.dirname, "..", "prompts");
 
-function log(msg: string): void {
+function log(phase: string, msg: string): void {
   const ts = new Date().toISOString().slice(11, 19);
-  console.log(`[${ts}] ${msg}`);
+  console.log(`[${ts}] [${phase}] ${msg}`);
 }
 
 /**
@@ -18,7 +18,7 @@ function log(msg: string): void {
 async function interview(): Promise<string> {
   const setupPrompt = await readFile(join(PROMPTS_DIR, "setup.md"), "utf-8");
 
-  log("starting project interview...\n");
+  log("SETUP", "starting project interview...\n");
 
   return new Promise((resolve, reject) => {
     // Use claude in interactive (non -p) mode via --print and stdin piping won't work.
@@ -68,7 +68,7 @@ async function writeGoalFromSpec(spec: string, goalDir: string): Promise<void> {
 
   const prompt = `${goalwriterPrompt}\n\n---\n\n# Project Spec\n\n${spec}`;
 
-  log("CEO is writing the goal...");
+  log("SETUP", "CEO is writing the goal...");
 
   const result = await new Promise<string>((resolve, reject) => {
     const proc = spawn("claude", ["-p", prompt, "--output-format", "text"], {
@@ -93,7 +93,7 @@ async function writeGoalFromSpec(spec: string, goalDir: string): Promise<void> {
   // Write root.md
   const rootPath = join(goalDir, "root.md");
   await writeFile(rootPath, result.trim() + "\n", "utf-8");
-  log(`wrote ${rootPath}`);
+  log("SETUP", `wrote ${rootPath}`);
 }
 
 /**
@@ -105,7 +105,7 @@ export async function setup(targetDir: string): Promise<void> {
   if (existsSync(join(goalDir, "root.md"))) {
     const content = await readFile(join(goalDir, "root.md"), "utf-8");
     if (!content.includes("<Your Project>") && !content.includes("<What must work?>")) {
-      log("goal/root.md already exists with real content. use 'noman drive' to continue.");
+      log("SETUP", "goal/root.md already exists with real content. use 'noman drive' to continue.");
       process.exit(1);
     }
   }
@@ -125,16 +125,16 @@ export async function setup(targetDir: string): Promise<void> {
   // Extract spec
   const spec = extractSpec(output);
   if (!spec) {
-    log("could not extract SPEC from interview. saving raw output for manual review.");
+    log("SETUP", "could not extract SPEC from interview. saving raw output for manual review.");
     await writeFile(join(goalDir, "interview-raw.md"), output, "utf-8");
-    log(`saved raw output to ${join(goalDir, "interview-raw.md")}`);
-    log("please extract the spec manually and run setup again, or edit root.md directly.");
+    log("SETUP", `saved raw output to ${join(goalDir, "interview-raw.md")}`);
+    log("SETUP", "please extract the spec manually and run setup again, or edit root.md directly.");
     return;
   }
 
   // Save spec for reference
   await writeFile(join(goalDir, "spec.md"), spec + "\n", "utf-8");
-  log(`saved spec to ${join(goalDir, "spec.md")}`);
+  log("SETUP", `saved spec to ${join(goalDir, "spec.md")}`);
 
   // Phase 2: CEO writes goal
   await writeGoalFromSpec(spec, goalDir);
@@ -144,13 +144,32 @@ export async function setup(targetDir: string): Promise<void> {
   if (!existsSync(statePath)) {
     await writeFile(
       statePath,
-      JSON.stringify({ currentTier: "", cycle: 0, items: {}, history: [], subGoalsCreated: 0 }, null, 2) + "\n",
+      JSON.stringify(
+        {
+          currentTier: "",
+          cycle: 0,
+          items: {},
+          history: [],
+          subGoalsCreated: 0,
+          handoff: {
+            updatedAt: new Date(0).toISOString(),
+            objective: "",
+            completed: [],
+            inProgress: [],
+            blocked: [],
+            nextActions: [],
+            decisions: [],
+          },
+        },
+        null,
+        2
+      ) + "\n",
       "utf-8"
     );
   }
 
   console.log("\n---");
-  log("setup complete.");
-  log("review goal/root.md — the CEO wrote your project goal.");
-  log("next: 用 noman prompt 生成入口提示词，粘贴到当前 agent 会话直接开始 drive。");
+  log("SETUP", "setup complete.");
+  log("SETUP", "review goal/root.md — the CEO wrote your project goal.");
+  log("SETUP", "next: 用 noman prompt 生成入口提示词，粘贴到当前 agent 会话直接开始 drive。");
 }

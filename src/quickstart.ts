@@ -18,6 +18,8 @@ export function buildQuickstartPrompt(targetDir: string): string {
 4) 给我 <= 6 行目标摘要。
 5) 在**当前会话**直接进入 CEO 协调循环（REVIEW → IMPL → FIX → RE-REVIEW），不要要求我再执行任何 TS CLI 作为运行时入口。
 6) 子 agent 派发时可使用本机 agent-cli（claude/codex/openai-compatible），但 CEO 本体必须留在当前会话。
+7) 长任务按小冲刺推进（每次 1~3 项），每轮结束都更新 \`goal/.state.json.handoff\`，保证下次会话可秒级接续。
+8) 每轮向后台 BOSS 汇报一次（可生成 \`noman boss --goal-dir goal\` packet），拿到高压 review 后继续执行。
 
 行为约束：
 - 全程中文
