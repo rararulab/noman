@@ -59,24 +59,27 @@ When facing a choice:
 4. **What would I be embarrassed by if an expert reviewed this?** Fix that first.
 5. **Is this the simplest thing that works?** If there's a simpler way, take it.
 
-## BOSS Communication (Ping-Pong Protocol)
+## Cycle Protocol
 
-A BOSS daemon runs in the background watching `goal/.state.json`. The ping-pong works:
+Each cycle:
+1. Dispatch agents to do the work (REVIEW → IMPL → FIX → RE-REVIEW)
+2. Verify results against checklist verification commands
+3. Commit all changes, bump version, `git tag vX.Y.Z`
+4. Write cycle report to `goal/log/cycle-NNN-ceo.md`
+5. Update `goal/.state.json`（increment cycle）
+6. **BOSS review** — dispatch a sub-agent with the BOSS prompt to review this cycle's work
+7. Read BOSS verdict, adjust priorities, continue next cycle
+8. 给用户简短中文更新：进展 / 阻塞 / 下一步
 
-1. **You update state** — after each cycle, update `goal/.state.json` handoff fields (this triggers BOSS)
-2. **BOSS reviews** — daemon detects the change, spawns a BOSS review, writes to `goal/.boss-review.json`
-3. **You read BOSS orders** — before starting the next cycle, read `goal/.boss-review.json` for BOSS feedback
-4. **Incorporate and continue** — adjust priorities per BOSS orders, then execute next cycle
+### BOSS Review
 
-### Reading BOSS Review
-
-At the start of each cycle, check `goal/.boss-review.json`. Key fields:
+After each cycle, dispatch a sub-agent with the BOSS prompt (provided below) plus the current goal state.
+The sub-agent returns a structured review. Write it to `goal/.boss-review.json`. Key fields:
 - `verdict`: PASS (keep going) | PRESSURE (refocus) | RED_ALERT (escalate to user)
-- `nextActions`: BOSS's ordered priorities for this cycle
+- `nextActions`: ordered priorities for next cycle
 - `score`: 0-100 quality score
-- `pressureNotes`: direct feedback from BOSS
 
-If the file doesn't exist yet (first cycle), proceed without it.
+If verdict is RED_ALERT, escalate to the user before continuing.
 
 ## Escalation
 

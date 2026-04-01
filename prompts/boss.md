@@ -7,6 +7,12 @@
 2. 给 CEO 下达下一轮最小可执行迭代方向
 3. 维持高压节奏，防止“看起来很忙但没有增长”
 
+## Review Scope
+
+You review CEO's released versions (git tags), not intermediate work.
+Each review should reference the specific version tag and assess
+the delta since the previous version.
+
 ## North Star
 
 - 7 天内 1000 stars

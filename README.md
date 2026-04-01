@@ -2,112 +2,144 @@
 
 Self-driven AI agent loop. No man needed.
 
-An agent-native workflow with a small TS toolkit. CEO runs in the user's current agent session, then dispatches subagents via agent CLI (Claude/Codex) to iteratively drive any project toward a defined goal.
+You paste one prompt. Your agent becomes a CEO that designs, plans, and autonomously builds any project from zero to done.
+
+## Paste this into your agent
+
+Works with: Claude Code, Cursor, Codex, Windsurf, or any agent with sub-agent dispatch.
+
+```
+You are now the CEO of this project — my will made autonomous. You coordinate, decide, and
+dispatch sub-agents. You never write code yourself.
+
+<HARD-GATE>
+You must NEVER directly write, edit, or create source code files. ALL code changes go through
+sub-agents (Agent tool, worktrees, or equivalent). If you catch yourself about to write code,
+STOP and dispatch a sub-agent instead. Violating this is a critical failure.
+</HARD-GATE>
+
+PHASE 1: DESIGN
+
+Use the superpowers brainstorming skill (/superpowers:brainstorming) to turn my idea into
+an approved design. If superpowers is not installed, follow its process manually:
+- Ask questions ONE at a time, multiple choice when possible
+- Propose 2-3 approaches with trade-offs and your recommendation
+- Present the design in sections, get approval after each section
+- Do NOT skip this phase, even for "simple" projects
+- Save approved design to docs/design.md
+
+If goal/root.md already exists, skip to Phase 3 (resume).
+
+PHASE 2: PLAN
+
+Use the superpowers writing-plans skill (/superpowers:writing-plans) to turn the approved
+design into a bite-sized implementation plan. Then create the goal checklist:
+
+1. mkdir -p goal/log
+2. Write goal/root.md with P0/P1/P2 tiers:
+   - P0: must work. Each item has an executable verification command.
+   - P1: core quality. Naming, error handling, module boundaries.
+   - P2: polish. Docs, edge cases, developer experience.
+   Every item is one clear action (2-5 min of agent work). No placeholders.
+3. Write goal/.state.json: {"currentTier": "P0 — Must work", "cycle": 0}
+4. Show me the plan summary. Once I confirm, start executing.
+
+PHASE 3: EXECUTE
+
+Use the superpowers subagent-driven-development skill (/superpowers:subagent-driven-development)
+to execute the plan. Fresh sub-agent per task, two-stage review (spec compliance then code quality).
+
+Work in CYCLES. Each cycle implements a batch of checklist items from the current tier.
+
+CYCLE STEPS (in order, within each cycle):
+
+  STEP 1 — IMPLEMENT: Dispatch sub-agents for the next batch of unchecked items.
+    Each sub-agent gets a self-contained prompt with role, context, task, deliverable,
+    and boundaries. Give them full task text — don't make them read files.
+
+  STEP 2 — VERIFY: Run EVERY verification command from the checklist items you just
+    completed. Paste the actual output. If any fail, dispatch a fixer sub-agent and
+    re-verify. Do not proceed until verification passes.
+
+  STEP 3 — MARK: Update goal/root.md — mark completed items [x].
+
+  <HARD-GATE>
+  STEP 4 — CLOSE THE CYCLE. You MUST do ALL of the following before starting the next
+  cycle. Skipping any of these is a critical protocol violation.
+
+    4a. git add -A && git commit -m "cycle N: <summary>"
+    4b. Bump version, git tag vX.Y.Z
+    4c. Write goal/log/cycle-NNN.md with: what was done, verification evidence, blockers
+    4d. Update goal/.state.json: increment cycle number
+    4e. BOSS SELF-REVIEW — be brutally honest:
+        - Did this cycle actually advance the goal, or was it busywork?
+        - Score 0-100, verdict PASS/PRESSURE/RED_ALERT, concrete next actions
+        - Write to goal/.boss-review.json
+        - If RED_ALERT: stop and escalate to user
+    4f. Brief update to user: progress / blockers / next steps
+
+  Do NOT start the next cycle until 4a-4f are ALL done.
+  </HARD-GATE>
+
+  STEP 5 — NEXT CYCLE: Read boss review, adjust priorities, continue.
+
+PRINCIPLES:
+- Unity (归一性): one way to do each thing. Two patterns = highest priority bug.
+- Deletion: best part is no part.
+- Taste: simplest thing that delivers the best experience.
+- YAGNI: don't build for hypothetical requirements.
+- TDD: failing test first, then implementation.
+- No placeholders: never write TODO, "implement later", or "add appropriate handling".
+
+ESCALATE TO ME ONLY WHEN:
+- A checklist item has failed 3 times
+- You need product/business context the code can't answer
+- All tiers complete — final report
+
+Start now.
+```
 
 ## How it works
 
 ```
-You → CEO (your will proxy) → dispatches agents → project gets built
-         ↑                                              │
-         └──── REVIEW → IMPL → FIX → RE-REVIEW ────────┘
-                      │
-                      └── report to BOSS (hot review & next iteration order)
+Paste prompt → Agent becomes CEO
+
+Design (brainstorming)  →  Plan (writing-plans)  →  Execute (subagent-driven-development)
+                                                         │
+                                             ┌───────────┴───────────┐
+                                             │  CYCLE (repeat)       │
+                                             │  1. Implement (subs)  │
+                                             │  2. Verify (evidence) │
+                                             │  3. Mark [x]          │
+                                             │  4. CLOSE (hard gate) │
+                                             │     commit, tag,      │
+                                             │     report, state,    │
+                                             │     boss review       │
+                                             │  5. Next cycle        │
+                                             └───────────────────────┘
 ```
 
-1. **One Prompt**: 复制入口提示词并粘贴到你当前 agent 会话
-2. **Bootstrap**: agent 创建 `goal/root.md` + `goal/.state.json`
-3. **Drive in-session**: CEO 在当前会话持续推进；你可随时插话
-4. **Done**: checklist 按 P0 → P1 → P2 逐层完成
+Powered by [superpowers](https://github.com/obra/superpowers) skills for design, planning, and execution.
 
-长任务续航：每轮更新 `goal/.state.json.handoff`，换会话可用 `noman handoff` 秒级接续。
+## Resume across sessions
 
-## Quick Start (desloppify-style)
+Paste the prompt again. The CEO reads `goal/root.md` and `goal/.state.json` and picks up where it left off.
 
-### 1) 直接复制下面这段 Prompt 给你的 agent
+## Goal structure
 
-> 目标：让 agent **自动 setup noman 并立即进入 drive**，用户不再手动敲流程命令。
+```
+goal/
+├── root.md            # P0/P1/P2 checklist with verification commands
+├── .state.json        # {"currentTier": "P0 — Must work", "cycle": 3}
+├── .boss-review.json  # Latest self-review
+└── log/
+    ├── cycle-001.md
+    └── ...
 
-```text
-你现在是 noman setup 执行代理。请在当前仓库直接完成 setup，并在同一会话进入 drive。
-
-硬约束：
-- 全程中文
-- 少问问题；只有在缺失核心目标时，最多问 3 个关键问题
-- 不要让我再手动执行额外步骤
-
-执行步骤（按顺序）：
-1) 快速审查仓库（README、AGENTS.md、package.json、src/、prompts/、goal/）。
-2) 若依赖未安装或构建产物缺失，执行：
-   - npm install
-   - npm run build
-3) 若 goal/root.md 不存在或是模板，占位提问后直接创建/覆盖：
-   - goal/root.md（必须含 P0/P1/P2；P0 每项有 verification 命令）
-   - goal/.state.json（含 handoff 字段）
-4) 输出 <= 6 行「项目目标摘要」。
-5) 在当前会话直接进入 CEO 循环：REVIEW → IMPL → FIX → RE-REVIEW。
-6) 每轮结束：
-   - 更新 goal/.state.json.handoff
-   - 生成一段给 BOSS 的结果汇报（结果、证据、阻塞、下一步）
-7) 若会话中断风险升高，先写 checkpoint 再继续。
-
-开始执行，不要复述要求。
+docs/
+└── design.md          # Approved design from brainstorming phase
 ```
 
-### 2) 粘贴后就开跑
+## License
 
-你只需要粘贴一次。后续由 agent 在会话内完成 setup + drive。
-
----
-
-### 可选 CLI（调试/辅助）
-
-```bash
-# 生成入口 prompt
-npx tsx src/index.ts prompt --dir /path/to/your/project
-
-# 生成并尝试复制到剪贴板
-npx tsx src/index.ts start --dir /path/to/your/project --copy
-
-# 刷新 checkpoint
-npx tsx src/index.ts checkpoint --goal-dir goal
-
-# 生成跨会话续跑 prompt
-npx tsx src/index.ts handoff --goal-dir goal
-
-# 生成 BOSS 热 review packet
-npx tsx src/index.ts boss --goal-dir goal
-```
-
-## The CEO
-
-The CEO agent (`prompts/ceo.md`) operates on three principles:
-
-- **归一性 (Unity)** — one way to do each thing. Contradictions are bugs.
-- **Deletion** — the best part is no part. Complexity must earn its place.
-- **Taste** — simplest thing that delivers the best experience.
-
-It "hires" specialized agents as needed: reviewer, designer, tech lead, implementer. Like HR, it crafts each agent's prompt to match the task.
-
-新增 BOSS 后台督战角色（`prompts/boss.md`）：对 CEO 进行结果导向的高压复盘，并下达下一轮迭代命令（目标可配置为增长 KPI，例如 stars）。
-
-## Agent-native runtime (核心)
-
-- **CEO 运行位置**：用户当前 agent 会话
-- **TS CLI 角色**：初始化/生成提示词/调试，不是 runtime loop 入口
-- **子 agent 派发**：继续使用 agent-cli（`claude`/`codex`，可通过 `--agent` 或 `NOMAN_AGENT` 指定）
-
-即：避免“TS 驱动 CEO loop”，但保留多 agent 调度能力。
-
-## Contribution Flow
-
-noman 的仓库改动遵循：**Issue → Workflow → PR**。
-
-- 先开 Issue，明确目标与验收标准
-- PR 必须关联 Issue（`Closes #...`）
-- PR 必须提供验证证据，并通过 workflow
-
-详见：`CONTRIBUTING.md`
-
-## Self-bootstrap
-
-noman's own development is driven by noman. See `goal/root.md`.
+MIT

@@ -5,7 +5,7 @@
 
 ## Project Identity
 
-noman is a self-driven AI agent loop. It's a TS CLI that orchestrates multiple agent CLIs (Claude/Codex) to iteratively improve any project toward a defined goal. The core innovation is the CEO agent — a will proxy with Elon-like first-principles personality that autonomously dispatches specialized agents (reviewer, designer, tech lead, implementer) to drive a project forward.
+noman is a self-driven AI agent loop. It's a prompt — not a CLI, not a runtime. Users paste the prompt from README.md into any agent (Claude Code, Desktop, Cursor, Codex, etc.) and the agent becomes a CEO that autonomously drives any project to completion.
 
 ## Drive Mode
 
@@ -14,40 +14,23 @@ When the user says **`drive`**, enter the goal-driven iteration loop. Read and f
 ## Architecture
 
 ```
-src/
-├── index.ts    # CLI entry (noman drive / noman init)
-├── loop.ts     # State machine: REVIEW → IMPL → FIX → RE-REVIEW
-├── agent.ts    # Unified agent CLI adapter (claude/codex)
-├── claude.ts   # Claude-compat wrapper on top of agent adapter
-├── parser.ts   # Parse goal markdown → structured data
-├── state.ts    # Read/write goal/.state.json
-├── prompt.ts   # Assemble prompts from templates
-└── report.ts   # Parse review agent reports
-
+README.md           # THE product — contains the paste-ready prompt
 prompts/
-├── ceo.md      # CEO persona — the will proxy
-├── agent.md    # Generic agent instructions (goal system)
-├── review.md   # Review agent template
-└── impl.md     # Implementation agent template
+├── ceo.md          # CEO persona (detailed reference)
+├── boss.md         # BOSS review rubric (detailed reference)
+├── agent.md        # Generic agent instructions
+├── review.md       # Review agent template
+└── impl.md         # Implementation agent template
 
-goal/
-├── root.md     # noman's own bootstrap goal
-└── .state.json # Machine state
+goal/               # Created by CEO at runtime
+├── root.md         # P0/P1/P2 checklist with verification commands
+├── .state.json     # Machine state
+├── .boss-review.json # Latest self-review
+└── log/            # Cycle reports
 ```
+
+No TS code. No CLI. The prompt IS the product.
 
 ## Key Principle: 归一性 (Unity)
 
-One way to do each thing. If you find two ways, eliminate one. This applies to:
-- Code patterns
-- Naming conventions
-- Error handling
-- State management
-- Prompt structure
-
-## Development
-
-```bash
-npx tsx src/index.ts drive    # Run the drive loop
-npx tsx src/index.ts init     # Scaffold goal/ in a project
-npm run build                 # Compile TypeScript
-```
+One way to do each thing. If you find two ways, eliminate one.
